@@ -57,8 +57,13 @@
             btnRacesInstall = new Button();
             toolsTab = new TabPage();
             gbDataTools = new GroupBox();
+            flowLayoutPanel1 = new FlowLayoutPanel();
             btnExtractTwtFiles = new Button();
             btnExtractPixFiles = new Button();
+            btnPackTwtFile = new Button();
+            btnCreatePixFiles = new Button();
+            btnPackPixFiles = new Button();
+            fldPackingBrowser = new FolderBrowserDialog();
             tabControl1.SuspendLayout();
             carsTab.SuspendLayout();
             tlpCarPanels.SuspendLayout();
@@ -79,6 +84,7 @@
             pnlRacesButtons.SuspendLayout();
             toolsTab.SuspendLayout();
             gbDataTools.SuspendLayout();
+            flowLayoutPanel1.SuspendLayout();
             SuspendLayout();
             // 
             // tabControl1
@@ -380,7 +386,7 @@
             // 
             scRacesRight.Panel2.Controls.Add(pnlRacesButtons);
             scRacesRight.Size = new Size(396, 567);
-            scRacesRight.SplitterDistance = 425;
+            scRacesRight.SplitterDistance = 424;
             scRacesRight.TabIndex = 0;
             // 
             // lstRacesMods
@@ -392,7 +398,7 @@
             lstRacesMods.ItemHeight = 15;
             lstRacesMods.Location = new Point(0, 0);
             lstRacesMods.Name = "lstRacesMods";
-            lstRacesMods.Size = new Size(396, 425);
+            lstRacesMods.Size = new Size(396, 424);
             lstRacesMods.TabIndex = 0;
             lstRacesMods.SelectedIndexChanged += lstRacesMods_SelectedIndexChanged;
             // 
@@ -404,7 +410,7 @@
             pnlRacesButtons.Dock = DockStyle.Fill;
             pnlRacesButtons.Location = new Point(0, 0);
             pnlRacesButtons.Name = "pnlRacesButtons";
-            pnlRacesButtons.Size = new Size(396, 138);
+            pnlRacesButtons.Size = new Size(396, 139);
             pnlRacesButtons.TabIndex = 0;
             // 
             // llToxicRagers
@@ -444,19 +450,34 @@
             // 
             // gbDataTools
             // 
-            gbDataTools.Controls.Add(btnExtractPixFiles);
-            gbDataTools.Controls.Add(btnExtractTwtFiles);
+            gbDataTools.AutoSize = true;
+            gbDataTools.Controls.Add(flowLayoutPanel1);
             gbDataTools.Dock = DockStyle.Top;
             gbDataTools.Location = new Point(4, 3);
             gbDataTools.Name = "gbDataTools";
-            gbDataTools.Size = new Size(741, 68);
+            gbDataTools.Size = new Size(741, 51);
             gbDataTools.TabIndex = 0;
             gbDataTools.TabStop = false;
             gbDataTools.Text = "Data Tools";
             // 
+            // flowLayoutPanel1
+            // 
+            flowLayoutPanel1.AutoSize = true;
+            flowLayoutPanel1.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            flowLayoutPanel1.Controls.Add(btnExtractTwtFiles);
+            flowLayoutPanel1.Controls.Add(btnExtractPixFiles);
+            flowLayoutPanel1.Controls.Add(btnPackTwtFile);
+            flowLayoutPanel1.Controls.Add(btnCreatePixFiles);
+            flowLayoutPanel1.Controls.Add(btnPackPixFiles);
+            flowLayoutPanel1.Dock = DockStyle.Top;
+            flowLayoutPanel1.Location = new Point(3, 19);
+            flowLayoutPanel1.Name = "flowLayoutPanel1";
+            flowLayoutPanel1.Size = new Size(735, 29);
+            flowLayoutPanel1.TabIndex = 3;
+            // 
             // btnExtractTwtFiles
             // 
-            btnExtractTwtFiles.Location = new Point(6, 22);
+            btnExtractTwtFiles.Location = new Point(3, 3);
             btnExtractTwtFiles.Name = "btnExtractTwtFiles";
             btnExtractTwtFiles.Size = new Size(159, 23);
             btnExtractTwtFiles.TabIndex = 0;
@@ -466,12 +487,41 @@
             // 
             // btnExtractPixFiles
             // 
-            btnExtractPixFiles.Location = new Point(171, 22);
+            btnExtractPixFiles.Location = new Point(168, 3);
             btnExtractPixFiles.Name = "btnExtractPixFiles";
             btnExtractPixFiles.Size = new Size(156, 23);
             btnExtractPixFiles.TabIndex = 1;
             btnExtractPixFiles.Text = "Extract All PIX Files";
             btnExtractPixFiles.UseVisualStyleBackColor = true;
+            btnExtractPixFiles.Click += btnExtractPixFiles_Click;
+            // 
+            // btnPackTwtFile
+            // 
+            btnPackTwtFile.Location = new Point(330, 3);
+            btnPackTwtFile.Name = "btnPackTwtFile";
+            btnPackTwtFile.Size = new Size(111, 23);
+            btnPackTwtFile.TabIndex = 2;
+            btnPackTwtFile.Text = "Pack TWT File";
+            btnPackTwtFile.UseVisualStyleBackColor = true;
+            btnPackTwtFile.Click += btnPackTwtFile_Click;
+            // 
+            // btnCreatePixFiles
+            // 
+            btnCreatePixFiles.Location = new Point(447, 3);
+            btnCreatePixFiles.Name = "btnCreatePixFiles";
+            btnCreatePixFiles.Size = new Size(119, 23);
+            btnCreatePixFiles.TabIndex = 3;
+            btnCreatePixFiles.Text = "Create PIX Files";
+            btnCreatePixFiles.UseVisualStyleBackColor = true;
+            // 
+            // btnPackPixFiles
+            // 
+            btnPackPixFiles.Location = new Point(572, 3);
+            btnPackPixFiles.Name = "btnPackPixFiles";
+            btnPackPixFiles.Size = new Size(119, 23);
+            btnPackPixFiles.TabIndex = 4;
+            btnPackPixFiles.Text = "Pack PIX Files";
+            btnPackPixFiles.UseVisualStyleBackColor = true;
             // 
             // MainForm
             // 
@@ -505,7 +555,10 @@
             scRacesRight.ResumeLayout(false);
             pnlRacesButtons.ResumeLayout(false);
             toolsTab.ResumeLayout(false);
+            toolsTab.PerformLayout();
             gbDataTools.ResumeLayout(false);
+            gbDataTools.PerformLayout();
+            flowLayoutPanel1.ResumeLayout(false);
             ResumeLayout(false);
         }
 
@@ -545,5 +598,10 @@
         private GroupBox gbDataTools;
         private Button btnExtractPixFiles;
         private Button btnExtractTwtFiles;
+        private FlowLayoutPanel flowLayoutPanel1;
+        private Button btnPackTwtFile;
+        private Button btnCreatePixFiles;
+        private Button btnPackPixFiles;
+        private FolderBrowserDialog fldPackingBrowser;
     }
 }
