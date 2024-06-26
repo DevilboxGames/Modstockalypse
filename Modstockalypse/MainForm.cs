@@ -2,6 +2,7 @@ using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO.Compression;
 using System.IO;
+using Modstockalypse.Utilities;
 using ToxicRagers.Brender.Formats;
 using ToxicRagers.Carmageddon.Helpers;
 using ToxicRagers.Carmageddon2.Formats;
@@ -547,85 +548,42 @@ namespace Modstockalypse
         private void btnExtractTwtFiles_Click(object sender, EventArgs e)
         {
 
-            DirectoryInfo here = new DirectoryInfo(path);
-            foreach (FileInfo fi in here.GetFiles("*.TWaT", SearchOption.AllDirectories))
-            {
-                fi.MoveTo(fi.FullName.Replace(fi.Extension, ".twt"));
-            }
-            foreach (FileInfo fi in here.GetFiles("*.twt", SearchOption.AllDirectories))
-            {
-                using (FileStream stream = fi.OpenRead())
-                {
-                    TWT twt = TWT.Load(stream);
-                    twt.Name = Path.GetFileNameWithoutExtension(fi.Name);
-                    twt.Location = fi.DirectoryName;
-                    twt.ExtractAll();
-                }
-                fi.MoveTo(fi.FullName.Replace(fi.Extension, ".TWaT"));
-            }
-            foreach (FileInfo fi in here.GetFiles("pixies.p*", SearchOption.AllDirectories))
-            {
-                string dest = fi.DirectoryName + (fi.Extension.EndsWith("08") ? "\\PIX08\\" : "\\PIX16\\");
-
-                PIX pix = PIX.Load(fi.FullName);
-                pix.ExtractPixies(dest);
-                fi.Delete();
-            }
+            TwtTools.ExtractTwtFiles(path);
         }
 
         private void btnExtractPixFiles_Click(object sender, EventArgs e)
         {
-            DirectoryInfo here = new DirectoryInfo(path);
-            foreach (FileInfo fi in here.GetFiles("*.twt", SearchOption.AllDirectories))
-            {
-                TWT twt = TWT.Load(fi.FullName);
-                twt.Name = Path.GetFileNameWithoutExtension(fi.Name);
-                twt.Location = fi.DirectoryName;
-                foreach (TWTEntry entry in twt.Contents.Where(entry =>
-                             entry.Name.EndsWith("p08", true, CultureInfo.InvariantCulture) ||
-                             entry.Name.EndsWith("p16", true, CultureInfo.InvariantCulture)))
-                {
-                    using (MemoryStream stream = new MemoryStream(entry.Data))
-                    {
-                        PIX pix = PIX.Load(stream);
-
-                        string dest = Path.Combine(fi.Directory.FullName, Path.GetFileNameWithoutExtension(fi.Name), (entry.Name.EndsWith("8") ? "tiffx" : "tiffrgb"));
-                        if (!Directory.Exists(dest))
-                        {
-                            Directory.CreateDirectory(dest);
-                        }
-                        foreach (var pixie in pix.Pixies)
-                        {
-                            Bitmap bmp = pixie.GetBitmap();
-                            bmp.Save(Path.Combine(dest, $"{pixie.Name}.tif"), ImageFormat.Tiff);
-                        }
-                    }
-                }
-            }
-            foreach (FileInfo fi in here.GetFiles("*.pix", SearchOption.AllDirectories))
-            {
-                string dest = Path.Combine(fi.Directory.Parent.FullName, (fi.DirectoryName.EndsWith("8") ? "tiffx" : "tiffrgb"));
-                if (!Directory.Exists(dest))
-                {
-                    Directory.CreateDirectory(dest);
-                }
-                PIX pix = PIX.Load(fi.FullName);
-                foreach (var pixie in pix.Pixies)
-                {
-                    Bitmap bmp = pixie.GetBitmap();
-                    bmp.Save(Path.Combine(dest, $"{pixie.Name}.tif"), ImageFormat.Tiff);
-                }
-            }
+            PixTools.ExtractPixFiles(path);
         }
 
         private void btnPackTwtFile_Click(object sender, EventArgs e)
         {
-            fldPackingBrowser.InitialDirectory = path;
+            fbdFolderBrowser.InitialDirectory = path;
 
-            if (fldPackingBrowser.ShowDialog() == DialogResult.OK)
+            if (fbdFolderBrowser.ShowDialog() == DialogResult.OK)
             {
-                string target = fldPackingBrowser.SelectedPath;
+                TwtTools.PackTwtFiles(fbdFolderBrowser.SelectedPath);
+            }
+        }
 
+        private void btnCreatePixFiles_Click(object sender, EventArgs e)
+        {
+            fbdFolderBrowser.InitialDirectory = path;
+
+            if (fbdFolderBrowser.ShowDialog() == DialogResult.OK)
+            {
+                PixTools.CreatePixFiles(fbdFolderBrowser.SelectedPath);
+            }
+        }
+
+        private void btnPackPixFiles_Click(object sender, EventArgs e)
+        {
+
+            fbdFolderBrowser.InitialDirectory = path;
+
+            if (fbdFolderBrowser.ShowDialog() == DialogResult.OK)
+            {
+                PixTools.PackPixCollections(fbdFolderBrowser.SelectedPath);
             }
         }
     }

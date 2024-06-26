@@ -63,7 +63,8 @@
             btnPackTwtFile = new Button();
             btnCreatePixFiles = new Button();
             btnPackPixFiles = new Button();
-            fldPackingBrowser = new FolderBrowserDialog();
+            ofdFolderBrowser = new OpenFileDialog();
+            fbdFolderBrowser = new FolderBrowserDialog();
             tabControl1.SuspendLayout();
             carsTab.SuspendLayout();
             tlpCarPanels.SuspendLayout();
@@ -513,6 +514,7 @@
             btnCreatePixFiles.TabIndex = 3;
             btnCreatePixFiles.Text = "Create PIX Files";
             btnCreatePixFiles.UseVisualStyleBackColor = true;
+            btnCreatePixFiles.Click += btnCreatePixFiles_Click;
             // 
             // btnPackPixFiles
             // 
@@ -522,6 +524,13 @@
             btnPackPixFiles.TabIndex = 4;
             btnPackPixFiles.Text = "Pack PIX Files";
             btnPackPixFiles.UseVisualStyleBackColor = true;
+            btnPackPixFiles.Click += btnPackPixFiles_Click;
+            // 
+            // ofdFolderBrowser
+            // 
+            ofdFolderBrowser.AddExtension = false;
+            ofdFolderBrowser.FileName = " ";
+            ofdFolderBrowser.Filter = "Folders|";
             // 
             // MainForm
             // 
@@ -602,6 +611,7 @@
         private Button btnPackTwtFile;
         private Button btnCreatePixFiles;
         private Button btnPackPixFiles;
-        private FolderBrowserDialog fldPackingBrowser;
+        private OpenFileDialog ofdFolderBrowser;
+        private FolderBrowserDialog fbdFolderBrowser;
     }
 }
