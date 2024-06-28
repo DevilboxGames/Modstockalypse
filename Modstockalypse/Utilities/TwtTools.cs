@@ -50,6 +50,17 @@ namespace Modstockalypse.Utilities
         {
             string target = path;
             string savePath = Directory.GetParent(target).FullName;
+
+            if (Directory.Exists(Path.Combine(target, "tiffx")) || Directory.Exists(Path.Combine(target, "tiffrgb")))
+            {
+                PixTools.CreatePixFiles(target);
+            }
+
+            if (Directory.Exists(Path.Combine(target, "pix08")) || Directory.Exists(Path.Combine(target, "pix16")))
+            {
+                PixTools.PackPixCollections(target);
+            }
+
             TWT twt = TWT.Create(target, savePath, true);
         }
 

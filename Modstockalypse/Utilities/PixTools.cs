@@ -113,11 +113,102 @@ namespace Modstockalypse.Utilities
                     }
                 }
             }
+
+            if (!Directory.Exists(savePath))
+            {
+                Directory.CreateDirectory(savePath);
+            }
+
+            foreach (var file in Directory.EnumerateFiles(target, "*.tif"))
+            {
+                CreateAndSavePixFromFile(file, savePath);
+            }
+
+            if (!string.IsNullOrWhiteSpace(target2))
+            {
+                if (!Directory.Exists(savePath2))
+                {
+                    Directory.CreateDirectory(savePath2);
+                }
+
+                foreach (var file in Directory.EnumerateFiles(target2, "*.tif"))
+                {
+                    CreateAndSavePixFromFile(file, savePath2);
+                }
+            }
+        }
+
+        private static void CreateAndSavePixFromFile(string file, string savePath)
+        {
+            Bitmap bmp = new Bitmap(file);
+            PIXIE pixie = PIXIE.FromBitmap(
+                bmp.PixelFormat == PixelFormat.Format32bppArgb
+                    ? PIXIE.PixelmapFormat.C2_16bitAlpha
+                    : PIXIE.PixelmapFormat.C2_16bit, bmp);
+            pixie.Name = Path.GetFileNameWithoutExtension(file);
+            PIX pixFile = new PIX()
+            {
+                Pixies =
+                {
+                    pixie
+                }
+            };
+            pixFile.Save(Path.Combine(savePath, $"{pixie.Name}.pix"));
         }
 
         public static void PackPixCollections(string path)
         {
+            string target = path;
+            string savePath = Directory.GetParent(target).FullName;
+            string target2 = null;
+            string saveFile = null;
+            string saveFile2 = null;
+            if (target.EndsWith("pix08") || target.EndsWith("pix08"))
+            {
+                saveFile = "pixies.p08";
+            }
+            else if (target.EndsWith("pix16") || target.EndsWith("pix16"))
+            {
+                saveFile = "pixies.p16";
+            }
+            else
+            {
+                bool pix08Exists = Directory.Exists(Path.Combine(target,"pix08"));
+                bool pix16Exists = Directory.Exists(Path.Combine(target,"pix16"));
+                if (!pix08Exists && !pix16Exists)
+                {
+                    // just make a pix file in the same directory?
+                    savePath = target;
+                    saveFile = "pixies.pix";
+                }
+                else
+                {
+                    target = !pix16Exists ? Path.Combine(Directory.GetParent(target).FullName, "PIX08") : Path.Combine(Directory.GetParent(target).FullName, "PIX16");
+                    saveFile = !pix16Exists ? "pixies.p08" : "pixies.p16";
 
+                    target2 = pix08Exists && pix16Exists
+                        ? Path.Combine(Directory.GetParent(target).FullName, "PIX08")
+                        : null;
+                    saveFile2 = pix08Exists && pix16Exists ? "pixies.p08" : null;
+                }
+            }
+
+            PIX pix = new PIX();
+            foreach (string file in Directory.EnumerateFiles(target, "*.pix"))
+            {
+                pix.Pixies.AddRange(PIX.Load(file).Pixies);
+            }
+            pix.Save(Path.Combine(savePath,saveFile));
+
+            if (!string.IsNullOrWhiteSpace(target2))
+            {
+                pix = new PIX();
+                foreach (string file in Directory.EnumerateFiles(target2, "*.pix"))
+                {
+                    pix.Pixies.AddRange(PIX.Load(file).Pixies);
+                }
+                pix.Save(Path.Combine(savePath, saveFile2));
+            }
         }
     }
 }
