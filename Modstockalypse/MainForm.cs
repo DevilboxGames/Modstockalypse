@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO.Compression;
@@ -553,7 +554,37 @@ namespace Modstockalypse
 
         private void btnExtractPixFiles_Click(object sender, EventArgs e)
         {
-            PixTools.ExtractPixFiles(path);
+            ProgressDialog progressDialog = new ProgressDialog();
+            progressDialog.Name = "progressDialog";
+            progressDialog.Text = "Extracting textures from PIX files...";
+            BackgroundWorker worker = new BackgroundWorker();
+            worker.WorkerReportsProgress = true;
+            worker.WorkerSupportsCancellation = true;
+            worker.ProgressChanged += (sender, evnt) =>
+                progressDialog.UpdateProgress((DataProcessProgressReport)evnt.UserState);
+            progressDialog.OnCancel += () =>
+            {
+                worker.CancelAsync();
+                progressDialog.Close();
+            };
+
+            Action<DataProcessProgressReport> progressReporter = report =>
+            {
+                worker.ReportProgress(report.numItemsDone / Math.Max(1, report.numItems), report);
+            };
+
+            worker.DoWork += (sender, evnt) => { PixTools.ExtractPixFiles(path, progressReporter, worker, evnt); };
+            worker.RunWorkerCompleted += (sender, evnt) =>
+            {
+                if (evnt.Cancelled)
+                {
+                    return;
+                }
+                MessageBox.Show(this, "All PIX extracted!");
+                progressDialog.Close();
+            };
+            worker.RunWorkerAsync();
+            progressDialog.ShowDialog(this);
         }
 
         private void btnPackTwtFile_Click(object sender, EventArgs e)

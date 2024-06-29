@@ -8,7 +8,7 @@ using ToxicRagers.Carmageddon2.Formats;
 
 namespace Modstockalypse.Utilities
 {
-    internal static class TwtTools
+    public static class TwtTools
     {
 
         public static void ExtractTwtFiles(string path)

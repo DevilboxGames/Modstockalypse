@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing.Imaging;
 using System.Globalization;
 using System.Linq;
@@ -7,52 +8,112 @@ using System.Text;
 using System.Threading.Tasks;
 using ToxicRagers.Brender.Formats;
 using ToxicRagers.Carmageddon2.Formats;
+using static unluac.decompile.expression.TableLiteral;
 
 namespace Modstockalypse.Utilities
 {
-    internal static class PixTools
+    public static class PixTools
     {
-        public static void ExtractPixFiles(string path)
+        public static void ExtractPixFiles(string path, Action<DataProcessProgressReport> progressReport, BackgroundWorker worker, DoWorkEventArgs evnt )
         {
             DirectoryInfo here = new DirectoryInfo(path);
-            foreach (FileInfo fi in here.GetFiles("*.twt", SearchOption.AllDirectories))
+            DataProcessProgressReport report = new()
             {
+                numItems = 0,
+                numItemsDone = 0,
+                mainMessage = "Gathering PIX files to extract",
+
+                numSubItems = 0,
+                numSubItemsDone = 0,
+                subMessage = ""
+            };
+
+            progressReport.Invoke(report);
+            var twtFiles = here.GetFiles("*.twt", SearchOption.AllDirectories);
+            report.numSubItems = twtFiles.Length;
+            var twtEntries = twtFiles.SelectMany(fi =>
+            {
+                report.numSubItemsDone++;
+                report.mainMessage = $"Finding PIX in {fi.FullName}";
+                progressReport.Invoke(report);
                 TWT twt = TWT.Load(fi.FullName);
                 twt.Name = Path.GetFileNameWithoutExtension(fi.Name);
                 twt.Location = fi.DirectoryName;
-                foreach (TWTEntry entry in twt.Contents.Where(entry =>
-                             entry.Name.EndsWith("p08", true, CultureInfo.InvariantCulture) ||
-                             entry.Name.EndsWith("p16", true, CultureInfo.InvariantCulture)))
-                {
-                    using (MemoryStream stream = new MemoryStream(entry.Data))
-                    {
-                        PIX pix = PIX.Load(stream);
+                return twt.Contents.Where(entry =>
+                    entry.Name.EndsWith("p08", true, CultureInfo.InvariantCulture) ||
+                    entry.Name.EndsWith("p16", true, CultureInfo.InvariantCulture)).Select(twtentry => (fi, twtentry));
+            });
+            var pixFiles = here.GetFiles("*.pix", SearchOption.AllDirectories);
 
-                        string dest = Path.Combine(fi.Directory.FullName, Path.GetFileNameWithoutExtension(fi.Name), (entry.Name.EndsWith("8") ? "tiffx" : "tiffrgb"));
-                        if (!Directory.Exists(dest))
+            report.numItems = twtEntries.Count() + pixFiles.Length;
+
+            report.subMessage = "";
+            report.numSubItems = 0;
+            report.numSubItemsDone = 0;
+
+            foreach ((FileInfo fi, TWTEntry entry) in twtEntries)
+            {
+                if (worker.CancellationPending)
+                {
+                    evnt.Cancel = true;
+                    return;
+                }
+
+                report.mainMessage = $"Extracting {entry.Name} from {fi.FullName}";
+                using (MemoryStream stream = new MemoryStream(entry.Data))
+                {
+                    PIX pix = PIX.Load(stream);
+                    report.numSubItems = pix.Pixies.Count;
+                    report.numSubItemsDone = 0;
+                    string dest = Path.Combine(fi.Directory.FullName, Path.GetFileNameWithoutExtension(fi.Name), (entry.Name.EndsWith("8") ? "tiffx" : "tiffrgb"));
+                    if (!Directory.Exists(dest))
+                    {
+                        Directory.CreateDirectory(dest);
+                    }
+                    foreach (var pixie in pix.Pixies)
+                    {
+                        report.subMessage = $"Extracting {pixie.Name}";
+                        report.numSubItemsDone++;
+                        progressReport(report);
+                        Bitmap bmp = pixie.GetBitmap();
+                        bmp.Save(Path.Combine(dest, $"{pixie.Name}.tif"), ImageFormat.Tiff);
+                        if (worker.CancellationPending)
                         {
-                            Directory.CreateDirectory(dest);
-                        }
-                        foreach (var pixie in pix.Pixies)
-                        {
-                            Bitmap bmp = pixie.GetBitmap();
-                            bmp.Save(Path.Combine(dest, $"{pixie.Name}.tif"), ImageFormat.Tiff);
+                            evnt.Cancel = true;
+                            return;
                         }
                     }
                 }
+                report.numItemsDone++;
+                progressReport.Invoke(report);
             }
 
+            report.subMessage = "";
+            report.numSubItems = 0;
+            report.numSubItemsDone = 0;
+
             List<string> dirsToDelete = new List<string>();
-            foreach (FileInfo fi in here.GetFiles("*.pix", SearchOption.AllDirectories))
+            foreach (FileInfo fi in pixFiles)
             {
+                if (worker.CancellationPending)
+                {
+                    evnt.Cancel = true;
+                    return;
+                }
+                report.mainMessage = $"Extracting {fi.FullName}";
                 string dest = Path.Combine(fi.Directory.Parent.FullName, (fi.DirectoryName.EndsWith("8") ? "tiffx" : "tiffrgb"));
                 if (!Directory.Exists(dest))
                 {
                     Directory.CreateDirectory(dest);
                 }
                 PIX pix = PIX.Load(fi.FullName);
+                report.numSubItems = pix.Pixies.Count;
+                report.numSubItemsDone = 0;
                 foreach (var pixie in pix.Pixies)
                 {
+                    report.subMessage = $"Extracting {pixie.Name}";
+                    report.numSubItemsDone++;
+                    progressReport(report);
                     Bitmap bmp = pixie.GetBitmap();
                     string filename = pixie.Name;
                     if (string.IsNullOrWhiteSpace(pixie.Name))
@@ -60,6 +121,11 @@ namespace Modstockalypse.Utilities
                         filename = Path.GetFileNameWithoutExtension(fi.Name);
                     }
                     bmp.Save(Path.Combine(dest, $"{filename}.tif"), ImageFormat.Tiff);
+                    if (worker.CancellationPending)
+                    {
+                        evnt.Cancel = true;
+                        return;
+                    }
                 }
 
                 fi.Delete();
@@ -68,14 +134,30 @@ namespace Modstockalypse.Utilities
                 {
                     dirsToDelete.Add(fi.DirectoryName);
                 }
+                report.numItemsDone++;
+                progressReport.Invoke(report);
             }
-
+            if (worker.CancellationPending)
+            {
+                evnt.Cancel = true;
+                return;
+            }
+            report.subMessage = "";
+            report.numSubItems = 0;
+            report.numSubItemsDone = 0;
+            report.mainMessage = "Cleaning up...";
+            progressReport.Invoke(report);
             foreach (var dirtoDelete in dirsToDelete)
             {
                 if (!string.IsNullOrEmpty(dirtoDelete) && Directory.Exists(dirtoDelete) && dirtoDelete.StartsWith(path))
                 {
                     Directory.Delete(dirtoDelete);
                 }
+            }
+            if (worker.CancellationPending)
+            {
+                evnt.Cancel = true;
+                return;
             }
         }
 
