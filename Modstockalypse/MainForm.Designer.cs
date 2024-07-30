@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             tabControl1 = new TabControl();
             carsTab = new TabPage();
             tlpCarPanels = new TableLayoutPanel();
@@ -356,7 +357,7 @@
             // 
             scRacesPanels.Panel2.Controls.Add(scRacesRight);
             scRacesPanels.Size = new Size(741, 567);
-            scRacesPanels.SplitterDistance = 341;
+            scRacesPanels.SplitterDistance = 340;
             scRacesPanels.TabIndex = 1;
             // 
             // lstRacesRaces
@@ -368,7 +369,7 @@
             lstRacesRaces.ItemHeight = 15;
             lstRacesRaces.Location = new Point(0, 0);
             lstRacesRaces.Name = "lstRacesRaces";
-            lstRacesRaces.Size = new Size(341, 567);
+            lstRacesRaces.Size = new Size(340, 567);
             lstRacesRaces.TabIndex = 0;
             lstRacesRaces.SelectedIndexChanged += lstRaces_SelectedIndexChanged;
             // 
@@ -386,8 +387,8 @@
             // scRacesRight.Panel2
             // 
             scRacesRight.Panel2.Controls.Add(pnlRacesButtons);
-            scRacesRight.Size = new Size(396, 567);
-            scRacesRight.SplitterDistance = 424;
+            scRacesRight.Size = new Size(397, 567);
+            scRacesRight.SplitterDistance = 423;
             scRacesRight.TabIndex = 0;
             // 
             // lstRacesMods
@@ -399,7 +400,7 @@
             lstRacesMods.ItemHeight = 15;
             lstRacesMods.Location = new Point(0, 0);
             lstRacesMods.Name = "lstRacesMods";
-            lstRacesMods.Size = new Size(396, 424);
+            lstRacesMods.Size = new Size(397, 423);
             lstRacesMods.TabIndex = 0;
             lstRacesMods.SelectedIndexChanged += lstRacesMods_SelectedIndexChanged;
             // 
@@ -411,7 +412,7 @@
             pnlRacesButtons.Dock = DockStyle.Fill;
             pnlRacesButtons.Location = new Point(0, 0);
             pnlRacesButtons.Name = "pnlRacesButtons";
-            pnlRacesButtons.Size = new Size(396, 139);
+            pnlRacesButtons.Size = new Size(397, 140);
             pnlRacesButtons.TabIndex = 0;
             // 
             // llToxicRagers
@@ -524,6 +525,7 @@
             btnPackPixFiles.TabIndex = 4;
             btnPackPixFiles.Text = "Pack PIX Files";
             btnPackPixFiles.UseVisualStyleBackColor = true;
+            btnPackPixFiles.Visible = false;
             btnPackPixFiles.Click += btnPackPixFiles_Click;
             // 
             // ofdFolderBrowser
@@ -538,6 +540,7 @@
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(757, 601);
             Controls.Add(tabControl1);
+            Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(4, 3, 4, 3);
             MaximizeBox = false;
             Name = "MainForm";

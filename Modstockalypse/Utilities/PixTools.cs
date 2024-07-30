@@ -161,17 +161,17 @@ namespace Modstockalypse.Utilities
             }
         }
 
-        public static void CreatePixFiles(string path)
+        public static void CreatePixFiles(string path, Action<DataProcessProgressReport> progressReport, BackgroundWorker worker, DoWorkEventArgs evnt, DataProcessProgressReport report = null)
         {
             string target = path;
             string target2 = null;
             string savePath = target;
             string savePath2 = null;
-            if (target.EndsWith("tiffrgb") || target.EndsWith("tiffrgb/"))
+            if (target.EndsWith("tiffrgb", true, CultureInfo.InvariantCulture) || target.EndsWith("tiffrgb/", true, CultureInfo.InvariantCulture))
             {
                 savePath = Path.Combine(Directory.GetParent(target).FullName, "PIX16");
             }
-            else if (target.EndsWith("tiffx") || target.EndsWith("tiffx/"))
+            else if (target.EndsWith("tiffx", true, CultureInfo.InvariantCulture) || target.EndsWith("tiffx/", true, CultureInfo.InvariantCulture))
             {
                 savePath = Path.Combine(Directory.GetParent(target).FullName, "PIX08");
             }
@@ -201,9 +201,49 @@ namespace Modstockalypse.Utilities
                 Directory.CreateDirectory(savePath);
             }
 
-            foreach (var file in Directory.EnumerateFiles(target, "*.tif"))
+            IEnumerable<string> tifFiles = Directory.EnumerateFiles(target, "*.tif");
+            IEnumerable<string> tifFiles2 = string.IsNullOrWhiteSpace(target2) ? null : Directory.EnumerateFiles(target2, "*.tif");
+
+            if (report == null)
+            {
+                report = new()
+                {
+                    numItems = 0,
+                    numItemsDone = 0,
+                    mainMessage = "",
+                    ShowSubProgress = false,
+                    numSubItems = 0,
+                    numSubItemsDone = 0,
+                    subMessage = ""
+                };
+            }
+
+            if (report.numItems > 0)
+            {
+                report.numSubItems = tifFiles.Count() + (tifFiles2?.Count() ?? 0);
+                report.numSubItemsDone = 0;
+                report.subMessage = "Gathering TIF files to pack";
+            }
+            else
+            {
+                report.numItems = tifFiles.Count() + (tifFiles2?.Count() ?? 0);
+                report.numItemsDone = 0;
+                report.mainMessage = "Gathering TIF files to pack";
+            }
+
+            foreach (var file in tifFiles)
             {
                 CreateAndSavePixFromFile(file, savePath);
+                report.mainMessage =
+                    $"Converting {Path.GetFileName(file)} to {Path.ChangeExtension(Path.GetFileName(file), "pix")}";
+                report.numItemsDone++;
+                progressReport.Invoke(report);
+                if (worker.CancellationPending)
+                {
+                    evnt.Cancel = true;
+                    return;
+                }
+                Thread.Sleep(1);
             }
 
             if (!string.IsNullOrWhiteSpace(target2))
@@ -213,9 +253,29 @@ namespace Modstockalypse.Utilities
                     Directory.CreateDirectory(savePath2);
                 }
 
-                foreach (var file in Directory.EnumerateFiles(target2, "*.tif"))
+                foreach (var file in tifFiles2)
                 {
                     CreateAndSavePixFromFile(file, savePath2);
+                    if (report.numSubItems > 0)
+                    {
+                        report.subMessage =
+                            $"Converting {Path.GetFileName(file)} to {Path.ChangeExtension(Path.GetFileName(file), "pix")}";
+                        report.numSubItemsDone++;
+                    }
+                    else
+                    {
+                        report.mainMessage =
+                            $"Converting {Path.GetFileName(file)} to {Path.ChangeExtension(Path.GetFileName(file), "pix")}";
+                        report.numItemsDone++;
+                    }
+
+                    progressReport.Invoke(report);
+                    if (worker.CancellationPending)
+                    {
+                        evnt.Cancel = true;
+                        return;
+                    }
+                    Thread.Sleep(1);
                 }
             }
         }
@@ -238,18 +298,18 @@ namespace Modstockalypse.Utilities
             pixFile.Save(Path.Combine(savePath, $"{pixie.Name}.pix"));
         }
 
-        public static void PackPixCollections(string path)
+        public static void PackPixCollections(string path, Action<DataProcessProgressReport> progressReport, BackgroundWorker worker, DoWorkEventArgs evnt, DataProcessProgressReport report = null)
         {
             string target = path;
             string savePath = Directory.GetParent(target).FullName;
             string target2 = null;
             string saveFile = null;
             string saveFile2 = null;
-            if (target.EndsWith("pix08") || target.EndsWith("pix08"))
+            if (target.EndsWith("pix08", true, CultureInfo.InvariantCulture))
             {
                 saveFile = "pixies.p08";
             }
-            else if (target.EndsWith("pix16") || target.EndsWith("pix16"))
+            else if (target.EndsWith("pix16", true, CultureInfo.InvariantCulture))
             {
                 saveFile = "pixies.p16";
             }
@@ -274,20 +334,88 @@ namespace Modstockalypse.Utilities
                     saveFile2 = pix08Exists && pix16Exists ? "pixies.p08" : null;
                 }
             }
+            IEnumerable<string> pixFiles1 = Directory.EnumerateFiles(target, "*.pix");
+            IEnumerable<string> pixFiles2 = string.IsNullOrWhiteSpace(target2) ? null : Directory.EnumerateFiles(target2, "*.pix");
+
+            if (report == null)
+            {
+                report = new()
+                {
+                    numItems = 0,
+                    numItemsDone = 0,
+                    mainMessage = "",
+                    ShowSubProgress = false,
+                    numSubItems = 0,
+                    numSubItemsDone = 0,
+                    subMessage = ""
+                };
+            }
+
+            if (report.numItems > 0)
+            {
+                report.numSubItems = pixFiles1.Count() + (pixFiles2?.Count() ?? 0);
+                report.numSubItemsDone = 0;
+                report.subMessage = "Gathering PIX files to pack";
+            }
+            else
+            {
+                report.numItems = pixFiles1.Count() + (pixFiles2?.Count() ?? 0);
+                report.numItemsDone = 0;
+                report.mainMessage = "Gathering PIX files to pack";
+            }
 
             PIX pix = new PIX();
-            foreach (string file in Directory.EnumerateFiles(target, "*.pix"))
+            foreach (string file in pixFiles1)
             {
                 pix.Pixies.AddRange(PIX.Load(file).Pixies);
+                if (report.numSubItems > 0)
+                {
+                    report.subMessage =
+                        $"Packing {Path.GetFileName(file)} into {saveFile}";
+                    report.numSubItemsDone++;
+                }
+                else
+                {
+                    report.mainMessage =
+                        $"Packing {Path.GetFileName(file)} into {saveFile}";
+                    report.numItemsDone++;
+                }
+
+                progressReport.Invoke(report);
+                if (worker.CancellationPending)
+                {
+                    evnt.Cancel = true;
+                    return;
+                }
             }
             pix.Save(Path.Combine(savePath,saveFile));
 
             if (!string.IsNullOrWhiteSpace(target2))
             {
                 pix = new PIX();
-                foreach (string file in Directory.EnumerateFiles(target2, "*.pix"))
+                foreach (string file in pixFiles2)
                 {
                     pix.Pixies.AddRange(PIX.Load(file).Pixies);
+                    pix.Pixies.AddRange(PIX.Load(file).Pixies);
+                    if (report.numSubItems > 0)
+                    {
+                        report.subMessage =
+                            $"Packing {Path.GetFileName(file)} into {saveFile2}";
+                        report.numSubItemsDone++;
+                    }
+                    else
+                    {
+                        report.mainMessage =
+                            $"Packing {Path.GetFileName(file)} into {saveFile2}";
+                        report.numItemsDone++;
+                    }
+
+                    progressReport.Invoke(report);
+                    if (worker.CancellationPending)
+                    {
+                        evnt.Cancel = true;
+                        return;
+                    }
                 }
                 pix.Save(Path.Combine(savePath, saveFile2));
             }

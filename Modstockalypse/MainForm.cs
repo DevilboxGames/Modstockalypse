@@ -548,62 +548,118 @@ namespace Modstockalypse
 
         private void btnExtractTwtFiles_Click(object sender, EventArgs e)
         {
-
-            TwtTools.ExtractTwtFiles(path);
+            if (MessageBox.Show(
+                    "You are about to extract all the data files from the TWT packages. Do you wish to continue?",
+                    "Extract TWT Files", MessageBoxButtons.YesNo) == DialogResult.Yes)
+            {
+                Func<BackgroundWorker, Action<DataProcessProgressReport>, DoWorkEventHandler> workerFactory =
+                    (worker, progressReporter) =>
+                    {
+                        return (sender, evnt) => { TwtTools.ExtractTwtFiles(path, progressReporter, worker, evnt); };
+                    };
+                FormTools.DoWorkWithProgressDialog("Extracting files from TWT packages...", "All TWTs extracted!", this,
+                    workerFactory);
+            }
         }
 
         private void btnExtractPixFiles_Click(object sender, EventArgs e)
         {
-            ProgressDialog progressDialog = new ProgressDialog();
-            progressDialog.Name = "progressDialog";
-            progressDialog.Text = "Extracting textures from PIX files...";
-            BackgroundWorker worker = new BackgroundWorker();
-            worker.WorkerReportsProgress = true;
-            worker.WorkerSupportsCancellation = true;
-            worker.ProgressChanged += (sender, evnt) =>
-                progressDialog.UpdateProgress((DataProcessProgressReport)evnt.UserState);
-            progressDialog.OnCancel += () =>
+            if (MessageBox.Show(
+                    "You are about to convert all the PIX files to TIFF images. Do you wish to continue?",
+                    "Extract TWT Files", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
-                worker.CancelAsync();
-                progressDialog.Close();
-            };
-
-            Action<DataProcessProgressReport> progressReporter = report =>
-            {
-                worker.ReportProgress(report.numItemsDone / Math.Max(1, report.numItems), report);
-            };
-
-            worker.DoWork += (sender, evnt) => { PixTools.ExtractPixFiles(path, progressReporter, worker, evnt); };
-            worker.RunWorkerCompleted += (sender, evnt) =>
-            {
-                if (evnt.Cancelled)
+                Func<BackgroundWorker, Action<DataProcessProgressReport>, DoWorkEventHandler> workerFactory =
+                    (worker, progressReporter) =>
+                    {
+                        return (sender, evnt) => { PixTools.ExtractPixFiles(path, progressReporter, worker, evnt); };
+                    };
+                FormTools.DoWorkWithProgressDialog("Extracting textures from PIX files...", "All PIX extracted!", this,
+                    workerFactory);
+                /*
+                ProgressDialog progressDialog = new ProgressDialog();
+                progressDialog.Name = "progressDialog";
+                progressDialog.Text = "Extracting textures from PIX files...";
+                BackgroundWorker worker = new BackgroundWorker();
+                worker.WorkerReportsProgress = true;
+                worker.WorkerSupportsCancellation = true;
+                worker.ProgressChanged += (sender, evnt) =>
+                    progressDialog.UpdateProgress((DataProcessProgressReport)evnt.UserState);
+                progressDialog.OnCancel += () =>
                 {
-                    return;
-                }
-                MessageBox.Show(this, "All PIX extracted!");
-                progressDialog.Close();
-            };
-            worker.RunWorkerAsync();
-            progressDialog.ShowDialog(this);
+                    worker.CancelAsync();
+                    progressDialog.Close();
+                };
+
+                Action<DataProcessProgressReport> progressReporter = report =>
+                {
+                    worker.ReportProgress(report.numItemsDone / Math.Max(1, report.numItems), report);
+                };
+
+                worker.DoWork += (sender, evnt) => { PixTools.ExtractPixFiles(path, progressReporter, worker, evnt); };
+                worker.RunWorkerCompleted += (sender, evnt) =>
+                {
+                    if (evnt.Cancelled)
+                    {
+                        return;
+                    }
+
+                    MessageBox.Show(this, "All PIX extracted!");
+                    progressDialog.Close();
+                };
+                worker.RunWorkerAsync();
+                progressDialog.ShowDialog(this);
+                */
+            }
         }
 
         private void btnPackTwtFile_Click(object sender, EventArgs e)
         {
-            fbdFolderBrowser.InitialDirectory = path;
-
-            if (fbdFolderBrowser.ShowDialog() == DialogResult.OK)
+            if (MessageBox.Show(
+                    "You are about to pack all the data into TWT files. This includes converting any TIFF files into PIX files. Do you wish to continue?",
+                    "Pack TWT Files", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
-                TwtTools.PackTwtFiles(fbdFolderBrowser.SelectedPath);
+                fbdFolderBrowser.InitialDirectory = path;
+
+                if (fbdFolderBrowser.ShowDialog() == DialogResult.OK)
+                {
+                    Func<BackgroundWorker, Action<DataProcessProgressReport>, DoWorkEventHandler> workerFactory =
+                        (worker, progressReporter) =>
+                        {
+                            return (sender, evnt) =>
+                            {
+                                TwtTools.PackTwtFiles(fbdFolderBrowser.SelectedPath, progressReporter, worker,
+                                    evnt);
+                            };
+                        };
+                    FormTools.DoWorkWithProgressDialog("Packing files into a TWT...", "The TWT is packed!", this,
+                        workerFactory);
+                }
             }
         }
 
         private void btnCreatePixFiles_Click(object sender, EventArgs e)
         {
-            fbdFolderBrowser.InitialDirectory = path;
-
-            if (fbdFolderBrowser.ShowDialog() == DialogResult.OK)
+            if (MessageBox.Show(
+                    "You are about to convert all the TIFF images to PIX files. Do you wish to continue?",
+                    "Extract TWT Files", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
-                PixTools.CreatePixFiles(fbdFolderBrowser.SelectedPath);
+                fbdFolderBrowser.InitialDirectory = path;
+
+                if (fbdFolderBrowser.ShowDialog() == DialogResult.OK)
+                {
+                    Func<BackgroundWorker, Action<DataProcessProgressReport>, DoWorkEventHandler> workerFactory =
+                        (worker, progressReporter) =>
+                        {
+                            return (sender, evnt) =>
+                            {
+                                PixTools.CreatePixFiles(fbdFolderBrowser.SelectedPath, progressReporter, worker,
+                                    evnt);
+                            };
+                        };
+                    FormTools.DoWorkWithProgressDialog("Creating PIX files from TIFF images...", "All PIX created!",
+                        this, workerFactory);
+
+                }
             }
         }
 
@@ -614,8 +670,15 @@ namespace Modstockalypse
 
             if (fbdFolderBrowser.ShowDialog() == DialogResult.OK)
             {
-                PixTools.PackPixCollections(fbdFolderBrowser.SelectedPath);
+                Func<BackgroundWorker, Action<DataProcessProgressReport>, DoWorkEventHandler> workerFactory =
+                    (worker, progressReporter) =>
+                    {
+                        return (sender, evnt) => { PixTools.PackPixCollections(fbdFolderBrowser.SelectedPath, progressReporter, worker, evnt); };
+                    };
+                FormTools.DoWorkWithProgressDialog("Packing PIX files into P08/P16 collections...", "All PIX packed!", this, workerFactory);
             }
         }
+
+        
     }
 }

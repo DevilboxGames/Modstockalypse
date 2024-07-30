@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 
 namespace Modstockalypse.Utilities
 {
-    public struct DataProcessProgressReport
+    public class DataProcessProgressReport
     {
         public int numItemsDone;
         public int numItems;
         public string mainMessage;
 
+        public bool ShowSubProgress = true;
         public int numSubItemsDone;
         public int numSubItems;
         public string subMessage;
