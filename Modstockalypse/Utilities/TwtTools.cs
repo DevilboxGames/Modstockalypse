@@ -16,6 +16,7 @@ namespace Modstockalypse.Utilities
         public static void ExtractTwtFiles(string path, Action<DataProcessProgressReport> progressReport, BackgroundWorker worker, DoWorkEventArgs evnt)
         {
             DirectoryInfo here = new DirectoryInfo(path);
+            /*
             foreach (FileInfo fi in here.GetFiles("*.TWaT", SearchOption.AllDirectories))
             {
                 if (!File.Exists(fi.FullName.Replace(fi.Extension, ".twt")))
@@ -23,7 +24,7 @@ namespace Modstockalypse.Utilities
                     fi.MoveTo(fi.FullName.Replace(fi.Extension, ".twt"));
                 }
             }
-
+            */
             FileInfo[] twtFiles = here.GetFiles("*.twt", SearchOption.AllDirectories);
 
             DataProcessProgressReport report = new DataProcessProgressReport()
@@ -152,9 +153,9 @@ namespace Modstockalypse.Utilities
             }
 
             report.mainMessage = $"Packing TWT file";
-            TWT twt = TWT.Create(target, savePath);
+            TWT twt = TWT.Create(target, Path.Combine(savePath, $"{target}.twt"));
 
-            IEnumerable<string> filesToPack = Directory.EnumerateFileSystemEntries(path, "*", SearchOption.TopDirectoryOnly);
+            IEnumerable<string> filesToPack = Directory.EnumerateFiles(path, "*", SearchOption.TopDirectoryOnly);
             report.numSubItems = filesToPack.Count();
             report.numSubItemsDone = 0;
             

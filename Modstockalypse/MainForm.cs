@@ -615,10 +615,11 @@ namespace Modstockalypse
         private void btnPackTwtFile_Click(object sender, EventArgs e)
         {
             if (MessageBox.Show(
-                    "You are about to pack all the data into TWT files. This includes converting any TIFF files into PIX files. Do you wish to continue?",
+                    "You are about to pack all the data in the selected folder into TWT files. This includes converting any TIFF files into PIX files. Do you wish to continue?",
                     "Pack TWT Files", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
-                fbdFolderBrowser.InitialDirectory = path;
+                fbdFolderBrowser.InitialDirectory = string.IsNullOrEmpty(fbdFolderBrowser.SelectedPath) ? Path.Combine(path, fbdFolderBrowser.SelectedPath) : path;
+                fbdFolderBrowser.SelectedPath = null;
 
                 if (fbdFolderBrowser.ShowDialog() == DialogResult.OK)
                 {
@@ -640,10 +641,11 @@ namespace Modstockalypse
         private void btnCreatePixFiles_Click(object sender, EventArgs e)
         {
             if (MessageBox.Show(
-                    "You are about to convert all the TIFF images to PIX files. Do you wish to continue?",
-                    "Extract TWT Files", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                    "You are about to convert TIFF images to PIX files. Do you wish to continue?",
+                    "Pack PIX Files", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
-                fbdFolderBrowser.InitialDirectory = path;
+                fbdFolderBrowser.InitialDirectory = string.IsNullOrEmpty(fbdFolderBrowser.SelectedPath) ? Path.Combine(path, fbdFolderBrowser.SelectedPath) : path;
+                fbdFolderBrowser.SelectedPath = null;
 
                 if (fbdFolderBrowser.ShowDialog() == DialogResult.OK)
                 {
@@ -666,7 +668,8 @@ namespace Modstockalypse
         private void btnPackPixFiles_Click(object sender, EventArgs e)
         {
 
-            fbdFolderBrowser.InitialDirectory = path;
+            fbdFolderBrowser.InitialDirectory = string.IsNullOrEmpty(fbdFolderBrowser.SelectedPath) ? Path.Combine(path, fbdFolderBrowser.SelectedPath) : path;
+            fbdFolderBrowser.SelectedPath = null;
 
             if (fbdFolderBrowser.ShowDialog() == DialogResult.OK)
             {

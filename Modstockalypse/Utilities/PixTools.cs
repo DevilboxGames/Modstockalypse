@@ -190,8 +190,8 @@ namespace Modstockalypse.Utilities
 
                     if (tiffxExists && tiffrgbExists)
                     {
-                        target2 = tiffrgbDir;
-                        savePath2 = Path.Combine(oldtarget, "PIX16");
+                        target2 = tiffxDir;
+                        savePath2 = Path.Combine(oldtarget, "PIX08");
                     }
                 }
             }
@@ -317,19 +317,19 @@ namespace Modstockalypse.Utilities
             {
                 bool pix08Exists = Directory.Exists(Path.Combine(target,"pix08"));
                 bool pix16Exists = Directory.Exists(Path.Combine(target,"pix16"));
+                savePath = target;
                 if (!pix08Exists && !pix16Exists)
                 {
                     // just make a pix file in the same directory?
-                    savePath = target;
                     saveFile = "pixies.pix";
                 }
                 else
                 {
-                    target = !pix16Exists ? Path.Combine(Directory.GetParent(target).FullName, "PIX08") : Path.Combine(Directory.GetParent(target).FullName, "PIX16");
+                    target = !pix16Exists ? Path.Combine(path, "PIX08") : Path.Combine(path, "PIX16");
                     saveFile = !pix16Exists ? "pixies.p08" : "pixies.p16";
 
                     target2 = pix08Exists && pix16Exists
-                        ? Path.Combine(Directory.GetParent(target).FullName, "PIX08")
+                        ? Path.Combine(path, "PIX08")
                         : null;
                     saveFile2 = pix08Exists && pix16Exists ? "pixies.p08" : null;
                 }
